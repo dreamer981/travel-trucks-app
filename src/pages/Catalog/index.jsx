@@ -19,8 +19,19 @@ export default function Catalog() {
   useEffect(() => {
     // İlk girişte listeyi sıfırla ve 1. sayfayı yükle
     dispatch(resetList());
-    dispatch(fetchCampers({ page: 1, limit: 12 }));
+    dispatch(fetchCampers({ page: 1, limit: 12 })).then((action) => {
+      console.log("[UI] fetchCampers action.type:", action.type);
+      console.log("[UI] payload:", action.payload);
+      if (action.payload) {
+        console.log(
+          "[UI] payload.items isArray?",
+          Array.isArray(action.payload.items)
+        );
+      }
+    });
   }, [dispatch]);
+
+  console.log("[UI] items from store isArray?", Array.isArray(items), items);
 
   const loadMore = () => {
     if (status !== "loading" && hasMore) {
@@ -35,16 +46,15 @@ export default function Catalog() {
       {status === "loading" && items.length === 0 && <p>Loading...</p>}
 
       <ul>
-        {items.map((c) => (
-          <li key={c.id}>
-            {c.name} — {Number(c.price).toFixed(2)}
-            {/* Show More (yeni sekme): */}
-            {" "}
-            <a href={`/catalog/${c.id}`} target="_blank" rel="noopener">
-              Show More
-            </a>
-          </li>
-        ))}
+        {Array.isArray(items) &&
+          items.map((c) => (
+            <li key={c.id}>
+              {c.name} — {Number(c.price).toFixed(2)}{" "}
+              <a href={`/catalog/${c.id}`} target="_blank" rel="noopener">
+                Show More
+              </a>
+            </li>
+          ))}
       </ul>
 
       {status === "failed" && <p>Bir şeyler ters gitti.</p>}

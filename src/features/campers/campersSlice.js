@@ -34,9 +34,9 @@ const initialState = {
   items: [],
   page: 1,
   limit: 12,
-  total: undefined,   // backenden gelirse doldururuz
+  total: undefined, // backenden gelirse doldururuz
   hasMore: true,
-  status: "idle",     // idle | loading | succeeded | failed
+  status: "idle", // idle | loading | succeeded | failed
   error: null,
 
   // Detay cache'i
@@ -72,29 +72,33 @@ const campersSlice = createSlice({
       })
       .addCase(fetchCampers.fulfilled, (state, action) => {
         const { items, total, params } = action.payload;
+
+        // ✅ Güvenlik: items array değilse boş dizi yap
+        const safeItems = Array.isArray(items) ? items : [];
+
         const nextPage = params?.page ?? 1;
         const limit = params?.limit ?? state.limit;
 
         if (nextPage === 1) {
-          state.items = items;
+          state.items = safeItems; // <-- burada items yerine safeItems
         } else {
-          state.items = [...state.items, ...items];
+          state.items = [...state.items, ...safeItems];
         }
 
         state.page = nextPage;
         state.limit = limit;
         state.total = total;
 
-        // hasMore hesabı: total varsa ona göre, yoksa gelen boyuta göre
         if (typeof total === "number") {
           const loaded = state.items.length;
           state.hasMore = loaded < total;
         } else {
-          state.hasMore = items.length === limit; // total yoksa tahmin
+          state.hasMore = safeItems.length === limit; // <-- yine safeItems
         }
 
         state.status = "succeeded";
       })
+
       .addCase(fetchCampers.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || "Unknown error";
