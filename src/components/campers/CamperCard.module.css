@@ -55,6 +55,10 @@
   cursor: pointer;
 }
 
+.favorite.hover {
+  color: #E44848;
+}
+
 .meta {
   font-size: 14px;
   color: #555;

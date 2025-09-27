@@ -1,24 +1,26 @@
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";  // ✅ BURADAN!
 import styles from "./CamperCard.module.css";
+import { formatPrice } from "../../utils/formatPrice";
+import { selectIsFavorite, toggle } from "../../features/favorites/favoritesSlice";
+
 
 function getCoverImage(camper) {
   const first = camper?.gallery?.[0];
-  if (first?.thumb) return first.thumb;          // Catalog için thumb
-  if (first?.original) return first.original;    // fallback
+  if (first?.thumb) return first.thumb;    // katalogda thumb
+  if (first?.original) return first.original;
   return "https://via.placeholder.com/400x300?text=No+Image";
 }
 
-function formatPrice(value) {
-  const n = Number(value);
-  return isNaN(n) ? "0.00" : n.toFixed(2);
-}
-
 export default function CamperCard({ camper }) {
-  if (!camper) return null;
-
+  const dispatch = useDispatch();
+  const isFav = useSelector(selectIsFavorite(camper.id));
+  if (!camper) return null; 
   const imageUrl = getCoverImage(camper);
   const reviewCount = camper?.reviews?.length || 0;
   const rating = camper?.rating ?? 0;
+
+  const onToggleFav = () => dispatch(toggle(camper.id));
 
   return (
     <div className={styles.card}>
@@ -30,7 +32,16 @@ export default function CamperCard({ camper }) {
         <div className={styles.header}>
           <h3 className={styles.title}>{camper.name}</h3>
           <div className={styles.price}>€{formatPrice(camper.price)}</div>
-          <button className={styles.favorite} aria-label="Add to favorites">♡</button>
+
+          <button
+            className={`${styles.favorite} ${isFav ? styles.favoriteActive : ""}`}
+            aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
+            aria-pressed={isFav}
+            onClick={onToggleFav}
+            type="button"
+          >
+            {isFav ? "♥" : "♡"}
+          </button>
         </div>
 
         <div className={styles.meta}>
@@ -38,9 +49,7 @@ export default function CamperCard({ camper }) {
           <span>📍 {camper.location}</span>
         </div>
 
-        <p className={styles.description}>
-          {camper.description}
-        </p>
+        <p className={styles.description}>{camper.description}</p>
 
         <div className={styles.features}>
           <span className={styles.tag}>{camper.transmission}</span>
@@ -59,7 +68,7 @@ export default function CamperCard({ camper }) {
         <Link
           to={`/catalog/${camper.id}`}
           target="_blank"
-          rel="noopener"
+          rel="noopener noreferrer"
           className={styles.button}
         >
           Show more
